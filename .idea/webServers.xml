@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="efe2dc5f-3556-4f65-92e5-5f49d36386a8" name="newsAggregator">
+        <fileTransfer rootFolder="/var/www/news-aggregator" accessType="SFTP" host="31.128.34.195" port="22" sshConfigId="686d790b-5a1e-4feb-9f99-5c982c8cfcd6" sshConfig="newsAggregator">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
