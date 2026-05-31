@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Entity\VerificationCode;
 use App\Form\RegistrationFormType;
+use App\Message\SendTelegramConfirmationMessage;
 use App\Message\SendVerificationCodeMessage;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -63,6 +64,7 @@ class SecurityController extends AbstractController
             $em->flush();
 
             $bus->dispatch(new SendVerificationCodeMessage($user->getId(), $code->getCode()));
+            $bus->dispatch(new SendTelegramConfirmationMessage($user->getId(), $code->getId()));
 
             $request->getSession()->set('_verification_user_id', $user->getId());
 

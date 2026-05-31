@@ -12,6 +12,8 @@ use Doctrine\ORM\Mapping as ORM;
 class VerificationCode
 {
     public const STATUS_PENDING = 'pending';
+    public const STATUS_SENT = 'sent';
+    public const STATUS_FAILED = 'failed';
     public const STATUS_USED = 'used';
     public const STATUS_EXPIRED = 'expired';
     public const MAX_ATTEMPTS = 3;

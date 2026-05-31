@@ -23,9 +23,9 @@ class VerificationCodeRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('v')
             ->where('v.user = :user')
-            ->andWhere('v.status = :status')
+            ->andWhere('v.status IN (:statuses)')
             ->setParameter('user', $user)
-            ->setParameter('status', VerificationCode::STATUS_PENDING)
+            ->setParameter('statuses', [VerificationCode::STATUS_PENDING, VerificationCode::STATUS_SENT])
             ->orderBy('v.createdAt', 'DESC')
             ->setMaxResults(1)
             ->getQuery()

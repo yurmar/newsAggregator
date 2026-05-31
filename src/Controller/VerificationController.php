@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\VerificationCode;
+use App\Message\SendTelegramConfirmationMessage;
 use App\Message\SendVerificationCodeMessage;
 use App\Repository\UserRepository;
 use App\Repository\VerificationCodeRepository;
@@ -139,6 +140,7 @@ class VerificationController extends AbstractController
 
         $this->em->flush();
         $bus->dispatch(new SendVerificationCodeMessage($user->getId(), $newCode));
+        $bus->dispatch(new SendTelegramConfirmationMessage($user->getId(), $existing->getId()));
 
         $this->addFlash('info', sprintf('Новый код подтверждения: %s', $newCode));
         return $this->redirectToRoute('app_verify');
