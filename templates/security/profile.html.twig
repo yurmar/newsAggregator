@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Профиль — {{ user.name }}{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <h2 class="mb-4"><i class="fa fa-user me-2"></i>{{ user.name }}</h2>
+            <table class="table">
+                <tr><th>Email</th><td>{{ user.email }}</td></tr>
+                <tr><th>Роли</th><td>{{ user.roles|join(', ') }}</td></tr>
+                <tr><th>Дата регистрации</th><td>{{ user.createdAt|date('d.m.Y H:i') }}</td></tr>
+                <tr>
+                    <th>Последний вход</th>
+                    <td>{{ user.lastLoginAt ? user.lastLoginAt|date('d.m.Y H:i') : 'Неизвестно' }}</td>
+                </tr>
+            </table>
+            <a href="{{ path('app_article_index') }}" class="btn btn-outline-secondary">← На главную</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

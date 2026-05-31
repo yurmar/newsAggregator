@@ -1,0 +1,44 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block page_title %}Панель управления{% endblock %}
+
+{% block main %}
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Статьи</h5>
+                <p class="card-text display-6">{{ ea.getDashboardLocalePrefix() }}</p>
+                <a href="{{ ea_url().setController('App\\Controller\\Admin\\ArticleCrudController') }}"
+                   class="btn btn-light btn-sm">Управление →</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">Источники</h5>
+                <a href="{{ ea_url().setController('App\\Controller\\Admin\\NewsSourceCrudController') }}"
+                   class="btn btn-light btn-sm">Управление →</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">Пользователи</h5>
+                <a href="{{ ea_url().setController('App\\Controller\\Admin\\UserCrudController') }}"
+                   class="btn btn-light btn-sm">Управление →</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title">Импорт новостей</h5>
+                <p class="card-text small">php bin/console app:news:import</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

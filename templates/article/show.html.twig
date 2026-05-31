@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ article.title }} — NewsAgg{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card p-4">
+            {% if article.category %}
+                <div class="mb-2">
+                    <a href="{{ path('app_article_index', {category: article.category.slug}) }}"
+                       class="badge bg-secondary text-decoration-none">
+                        {{ article.category.name }}
+                    </a>
+                </div>
+            {% endif %}
+
+            <h1 class="h2 mb-3">{{ article.title }}</h1>
+
+            <div class="text-muted mb-3 small">
+                <i class="fa fa-clock me-1"></i>{{ article.publishedAt|date('d.m.Y H:i') }}
+                {% if article.source %}
+                    &nbsp;·&nbsp;<i class="fa fa-rss me-1"></i>{{ article.source.name }}
+                {% endif %}
+            </div>
+
+            {% if article.imageUrl %}
+                <img src="{{ article.imageUrl }}" class="img-fluid rounded mb-4"
+                     alt="{{ article.title }}" onerror="this.style.display='none'">
+            {% endif %}
+
+            {% if article.summary %}
+                <p class="lead text-muted">{{ article.summary }}</p>
+            {% endif %}
+
+            {% if article.content %}
+                <div class="article-content mt-3">{{ article.content|nl2br }}</div>
+            {% endif %}
+
+            <hr>
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="{{ path('app_article_index') }}" class="btn btn-outline-secondary">
+                    ← Назад к списку
+                </a>
+                <a href="{{ article.externalUrl }}" target="_blank" rel="noopener noreferrer"
+                   class="btn btn-primary">
+                    <i class="fa fa-external-link-alt me-1"></i>Читать на источнике
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

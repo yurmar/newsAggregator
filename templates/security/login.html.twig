@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Вход — NewsAgg{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card p-4 mt-4">
+            <h2 class="mb-4 text-center"><i class="fa fa-sign-in-alt me-2"></i>Вход</h2>
+
+            {% if error %}
+                <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+            {% endif %}
+
+            <form method="post" action="{{ path('app_login') }}">
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control" value="{{ last_username }}"
+                           placeholder="email@example.com" required autofocus>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Пароль</label>
+                    <input type="password" name="password" class="form-control" placeholder="Ваш пароль" required>
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" name="_remember_me" id="rememberMe">
+                    <label class="form-check-label" for="rememberMe">Запомнить меня</label>
+                </div>
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+                <button type="submit" class="btn btn-primary w-100">Войти</button>
+            </form>
+
+            <hr>
+            <p class="text-center mb-0">
+                Нет аккаунта? <a href="{{ path('app_register') }}">Зарегистрируйтесь</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
