@@ -1,0 +1,71 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Подтверждение регистрации — NewsAgg{% endblock %}
+
+{% block body %}
+<div class="flex justify-center items-start pt-8">
+    <div class="w-full max-w-md">
+
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold text-[var(--foreground)]">Подтверждение аккаунта</h1>
+            <p class="mt-1 text-sm text-[var(--muted-foreground)]">
+                Введите 6-значный код подтверждения
+            </p>
+        </div>
+
+        <div class="card p-6">
+
+            {% if error %}
+                <div class="alert alert-danger text-sm mb-4">{{ error }}</div>
+            {% endif %}
+
+            {% if not blocked %}
+                <form method="post" class="space-y-4">
+                    <div>
+                        <label for="code" class="block text-sm font-medium mb-1">Код подтверждения</label>
+                        <input
+                            type="text"
+                            id="code"
+                            name="code"
+                            maxlength="6"
+                            pattern="\d{6}"
+                            inputmode="numeric"
+                            autocomplete="one-time-code"
+                            placeholder="000000"
+                            required
+                            autofocus
+                            class="block w-full text-center text-xl tracking-widest"
+                        >
+                        {% if attemptsLeft > 0 and attemptsLeft < 3 %}
+                            <p class="mt-1 text-xs text-[var(--muted-foreground)]">
+                                Осталось попыток: {{ attemptsLeft }}
+                            </p>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-full mt-2">
+                        Подтвердить
+                    </button>
+                </form>
+            {% else %}
+                <div class="text-center py-4">
+                    <p class="text-sm text-[var(--muted-foreground)]">
+                        Код заблокирован. Обратитесь в поддержку или попробуйте зарегистрироваться заново.
+                    </p>
+                    <a href="{{ path('app_register') }}" class="btn btn-primary mt-4 inline-block">
+                        Зарегистрироваться заново
+                    </a>
+                </div>
+            {% endif %}
+
+        </div>
+
+        <p class="text-center mt-4 text-sm text-[var(--muted-foreground)]">
+            Уже есть аккаунт?
+            <a href="{{ path('app_login') }}" class="text-[var(--foreground)] font-medium hover:underline">
+                Войти
+            </a>
+        </p>
+    </div>
+</div>
+{% endblock %}

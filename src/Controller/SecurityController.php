@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Entity\VerificationCode;
 use App\Form\RegistrationFormType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -41,7 +41,6 @@ class SecurityController extends AbstractController
         Request $request,
         UserPasswordHasherInterface $hasher,
         EntityManagerInterface $em,
-        Security $security,
     ): Response {
         if ($this->getUser()) {
             return $this->redirectToRoute('app_article_index');
@@ -54,10 +53,18 @@ class SecurityController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $user->setPassword($hasher->hashPassword($user, $form->get('plainPassword')->getData()));
             $em->persist($user);
+
+            $code = new VerificationCode($user, (string) random_int(100000, 999999));
+            $em->persist($code);
             $em->flush();
 
-            $this->addFlash('success', 'Регистрация прошла успешно! Добро пожаловать.');
-            return $security->login($user, 'form_login', 'main');
+            $request->getSession()->set('_verification_user_id', $user->getId());
+
+            $this->addFlash('info', sprintf(
+                'Регистрация прошла успешно! Ваш код подтверждения: %s',
+                $code->getCode()
+            ));
+            return $this->redirectToRoute('app_verify');
         }
 
         return $this->render('security/register.html.twig', [
