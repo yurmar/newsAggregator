@@ -15,6 +15,13 @@
 
         <div class="card p-6">
 
+            {% for message in app.flashes('error') %}
+                <div class="alert alert-danger text-sm mb-4">{{ message }}</div>
+            {% endfor %}
+            {% for message in app.flashes('info') %}
+                <div class="alert alert-info text-sm mb-4">{{ message }}</div>
+            {% endfor %}
+
             {% if error %}
                 <div class="alert alert-danger text-sm mb-4">{{ error }}</div>
             {% endif %}
@@ -50,13 +57,43 @@
             {% else %}
                 <div class="text-center py-4">
                     <p class="text-sm text-[var(--muted-foreground)]">
-                        Код заблокирован. Обратитесь в поддержку или попробуйте зарегистрироваться заново.
+                        Код заблокирован. Запросите новый код или зарегистрируйтесь заново.
                     </p>
-                    <a href="{{ path('app_register') }}" class="btn btn-primary mt-4 inline-block">
-                        Зарегистрироваться заново
-                    </a>
                 </div>
             {% endif %}
+
+            <div class="mt-4 text-center">
+                {% if secondsUntilResend > 0 %}
+                    <p class="text-sm text-[var(--muted-foreground)]">
+                        Получить новый код через
+                        <span id="resend-countdown">{{ secondsUntilResend }}</span> сек.
+                    </p>
+                    <script>
+                        (function () {
+                            var el = document.getElementById('resend-countdown');
+                            var seconds = parseInt(el.textContent, 10);
+                            var interval = setInterval(function () {
+                                seconds--;
+                                if (seconds <= 0) {
+                                    clearInterval(interval);
+                                    el.closest('p').outerHTML =
+                                        '<form method="post" action="{{ path('app_verify_resend') }}">' +
+                                        '<button type="submit" class="text-sm text-[var(--foreground)] font-medium hover:underline">Получить новый код</button>' +
+                                        '</form>';
+                                } else {
+                                    el.textContent = seconds;
+                                }
+                            }, 1000);
+                        })();
+                    </script>
+                {% else %}
+                    <form method="post" action="{{ path('app_verify_resend') }}">
+                        <button type="submit" class="text-sm text-[var(--foreground)] font-medium hover:underline">
+                            Получить новый код
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
 
         </div>
 

@@ -7,10 +7,12 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Entity\VerificationCode;
 use App\Form\RegistrationFormType;
+use App\Message\SendVerificationCodeMessage;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
@@ -41,6 +43,7 @@ class SecurityController extends AbstractController
         Request $request,
         UserPasswordHasherInterface $hasher,
         EntityManagerInterface $em,
+        MessageBusInterface $bus,
     ): Response {
         if ($this->getUser()) {
             return $this->redirectToRoute('app_article_index');
@@ -55,8 +58,11 @@ class SecurityController extends AbstractController
             $em->persist($user);
 
             $code = new VerificationCode($user, (string) random_int(100000, 999999));
+            $code->setSentAt(new \DateTimeImmutable());
             $em->persist($code);
             $em->flush();
+
+            $bus->dispatch(new SendVerificationCodeMessage($user->getId(), $code->getCode()));
 
             $request->getSession()->set('_verification_user_id', $user->getId());
 

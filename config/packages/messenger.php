@@ -1,6 +1,7 @@
 <?php
 
 use App\Message\ImportNewsMessage;
+use App\Message\SendVerificationCodeMessage;
 use Symfony\Config\FrameworkConfig;
 
 return static function (FrameworkConfig $framework) {
@@ -12,6 +13,7 @@ return static function (FrameworkConfig $framework) {
 
     // На проде замените на transport 'async_amqp' с AMQP DSN
     $messenger->routing(ImportNewsMessage::class)->senders(['async']);
+    $messenger->routing(SendVerificationCodeMessage::class)->senders(['async']);
 
     $messenger->defaultBus('messenger.bus.default');
 };

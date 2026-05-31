@@ -38,6 +38,9 @@ class VerificationCode
     private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $sentAt = null;
+
+    #[ORM\Column(nullable: true)]
     private ?\DateTime $confirmedAt = null;
 
     public function __construct(User $user, string $code)
@@ -75,6 +78,39 @@ class VerificationCode
     }
 
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
+
+    public function getSentAt(): ?\DateTimeImmutable { return $this->sentAt; }
+
+    public function setSentAt(\DateTimeImmutable $sentAt): static
+    {
+        $this->sentAt = $sentAt;
+        return $this;
+    }
+
+    public function canResend(): bool
+    {
+        if ($this->sentAt === null) {
+            return true;
+        }
+        return $this->sentAt->getTimestamp() + 60 <= time();
+    }
+
+    public function getSecondsUntilResend(): int
+    {
+        if ($this->sentAt === null) {
+            return 0;
+        }
+        return max(0, ($this->sentAt->getTimestamp() + 60) - time());
+    }
+
+    public function resetForResend(string $newCode): static
+    {
+        $this->code = $newCode;
+        $this->sentAt = new \DateTimeImmutable();
+        $this->attemptCount = 0;
+        $this->status = self::STATUS_PENDING;
+        return $this;
+    }
 
     public function getConfirmedAt(): ?\DateTime { return $this->confirmedAt; }
 

@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\VerificationCode;
+use App\Message\SendVerificationCodeMessage;
 use App\Repository\UserRepository;
 use App\Repository\VerificationCodeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
 class VerificationController extends AbstractController
@@ -86,11 +88,59 @@ class VerificationController extends AbstractController
             $error = 'Превышено максимальное количество попыток. Код заблокирован.';
         }
 
+        $latest = $this->codeRepository->findLatestForUser($user);
+        $secondsUntilResend = $latest ? $latest->getSecondsUntilResend() : 0;
+
         return $this->render('security/verify.html.twig', [
-            'user' => $user,
-            'error' => $error,
-            'blocked' => $blocked,
-            'attemptsLeft' => $code ? max(0, VerificationCode::MAX_ATTEMPTS - $code->getAttemptCount()) : 0,
+            'user'              => $user,
+            'error'             => $error,
+            'blocked'           => $blocked,
+            'attemptsLeft'      => $code ? max(0, VerificationCode::MAX_ATTEMPTS - $code->getAttemptCount()) : 0,
+            'secondsUntilResend' => $secondsUntilResend,
         ]);
+    }
+
+    #[Route('/verify/resend', name: 'app_verify_resend', methods: ['POST'])]
+    public function resend(Request $request, MessageBusInterface $bus): Response
+    {
+        $session = $request->getSession();
+        $userId = $session->get('_verification_user_id');
+
+        if (!$userId) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $user = $this->userRepository->find($userId);
+
+        if (!$user || $user->isVerified()) {
+            $session->remove('_verification_user_id');
+            return $this->redirectToRoute('app_login');
+        }
+
+        $existing = $this->codeRepository->findLatestForUser($user);
+
+        if ($existing && !$existing->canResend()) {
+            $this->addFlash('error', sprintf(
+                'Подождите %d сек. перед повторной отправкой.',
+                $existing->getSecondsUntilResend()
+            ));
+            return $this->redirectToRoute('app_verify');
+        }
+
+        $newCode = (string) random_int(100000, 999999);
+
+        if ($existing) {
+            $existing->resetForResend($newCode);
+        } else {
+            $existing = new VerificationCode($user, $newCode);
+            $existing->setSentAt(new \DateTimeImmutable());
+            $this->em->persist($existing);
+        }
+
+        $this->em->flush();
+        $bus->dispatch(new SendVerificationCodeMessage($user->getId(), $newCode));
+
+        $this->addFlash('info', sprintf('Новый код подтверждения: %s', $newCode));
+        return $this->redirectToRoute('app_verify');
     }
 }

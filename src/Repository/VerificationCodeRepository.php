@@ -31,4 +31,15 @@ class VerificationCodeRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    public function findLatestForUser(User $user): ?VerificationCode
+    {
+        return $this->createQueryBuilder('v')
+            ->where('v.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('v.createdAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }
