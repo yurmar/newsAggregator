@@ -3,21 +3,59 @@
 {% block title %}Профиль — {{ user.name }}{% endblock %}
 
 {% block body %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card p-4">
-            <h2 class="mb-4"><i class="fa fa-user me-2"></i>{{ user.name }}</h2>
-            <table class="table">
-                <tr><th>Email</th><td>{{ user.email }}</td></tr>
-                <tr><th>Роли</th><td>{{ user.roles|join(', ') }}</td></tr>
-                <tr><th>Дата регистрации</th><td>{{ user.createdAt|date('d.m.Y H:i') }}</td></tr>
-                <tr>
-                    <th>Последний вход</th>
-                    <td>{{ user.lastLoginAt ? user.lastLoginAt|date('d.m.Y H:i') : 'Неизвестно' }}</td>
-                </tr>
-            </table>
-            <a href="{{ path('app_article_index') }}" class="btn btn-outline-secondary">← На главную</a>
+<div class="max-w-2xl mx-auto">
+
+    <h1 class="text-xl font-semibold text-[var(--foreground)] mb-6">Профиль</h1>
+
+    <div class="card overflow-hidden">
+
+        {# Header strip #}
+        <div class="h-20 bg-[var(--muted)]"></div>
+
+        <div class="px-6 pb-6">
+            {# Avatar #}
+            <div class="-mt-8 mb-4 flex items-end justify-between">
+                <div class="w-16 h-16 rounded-full bg-[var(--primary)] text-[var(--primary-foreground)]
+                            flex items-center justify-center text-2xl font-bold ring-4 ring-[var(--card)]">
+                    {{ user.name|first|upper }}
+                </div>
+            </div>
+
+            <h2 class="text-lg font-semibold text-[var(--foreground)]">{{ user.name }}</h2>
+            <p class="text-sm text-[var(--muted-foreground)] mt-0.5">{{ user.email }}</p>
+
+            <div class="mt-6 border-t border-[var(--border)] pt-6">
+                <table class="data-table">
+                    <tbody>
+                        <tr>
+                            <td class="text-[var(--muted-foreground)] w-44">Email</td>
+                            <td>{{ user.email }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-[var(--muted-foreground)]">Роли</td>
+                            <td>
+                                {% for role in user.roles %}
+                                    <span class="badge mr-1">{{ role }}</span>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text-[var(--muted-foreground)]">Дата регистрации</td>
+                            <td>{{ user.createdAt|date('d.m.Y H:i') }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-[var(--muted-foreground)]">Последний вход</td>
+                            <td>{{ user.lastLoginAt ? user.lastLoginAt|date('d.m.Y H:i') : '—' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-6">
+                <a href="{{ path('app_article_index') }}" class="btn btn-secondary">← На главную</a>
+            </div>
         </div>
     </div>
+
 </div>
 {% endblock %}

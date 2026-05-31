@@ -3,94 +3,105 @@
 {% block title %}Новости{% if currentCategory %} — {{ currentCategory.name }}{% endif %}{% endblock %}
 
 {% block body %}
-<div class="row">
-    {# Фильтр по категориям #}
-    <div class="col-12 mb-3">
-        <div class="d-flex flex-wrap gap-2">
-            <a href="{{ path('app_article_index') }}"
-               class="btn btn-sm {{ currentCategory is null ? 'btn-dark' : 'btn-outline-dark' }}">
-                Все
-            </a>
-            {% for category in categories %}
-                <a href="{{ path('app_article_index', {category: category.slug}) }}"
-                   class="btn btn-sm {{ currentCategory and currentCategory.id == category.id ? 'btn-dark' : 'btn-outline-dark' }}">
-                    {{ category.name }}
-                </a>
-            {% endfor %}
-        </div>
-    </div>
 
-    {# Список статей #}
-    {% if articles|length == 0 %}
-        <div class="col-12">
-            <div class="alert alert-info">
-                <i class="fa fa-info-circle me-2"></i>Статей пока нет. Запустите импорт командой
-                <code>php bin/console app:news:import</code>
-            </div>
-        </div>
-    {% endif %}
-
-    {% for article in articles %}
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100">
-                {% if article.imageUrl %}
-                    <img src="{{ article.imageUrl }}" class="card-img-top article-img" alt="{{ article.title }}"
-                         onerror="this.style.display='none'">
-                {% endif %}
-                <div class="card-body d-flex flex-column">
-                    {% if article.category %}
-                        <span class="badge bg-secondary mb-2 badge-category">{{ article.category.name }}</span>
-                    {% endif %}
-                    <h5 class="card-title">
-                        <a href="{{ path('app_article_show', {id: article.id}) }}" class="text-decoration-none text-dark">
-                            {{ article.title|length > 90 ? article.title|slice(0, 90) ~ '…' : article.title }}
-                        </a>
-                    </h5>
-                    {% if article.summary %}
-                        <p class="card-text text-muted small flex-grow-1">
-                            {{ article.summary|length > 150 ? article.summary|slice(0, 150) ~ '…' : article.summary }}
-                        </p>
-                    {% endif %}
-                    <div class="mt-auto pt-2 d-flex justify-content-between align-items-center">
-                        <small class="text-muted">
-                            <i class="fa fa-clock me-1"></i>{{ article.publishedAt|date('d.m.Y') }}
-                        </small>
-                        {% if article.source %}
-                            <small class="text-muted">{{ article.source.name }}</small>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
+{# Category filters #}
+<div class="flex flex-wrap items-center gap-2 mb-6">
+    <a href="{{ path('app_article_index') }}"
+       class="badge cursor-pointer no-underline transition-colors
+              {{ currentCategory is null ? 'bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)]' : 'hover:bg-[var(--accent)]' }}">
+        Все
+    </a>
+    {% for category in categories %}
+        <a href="{{ path('app_article_index', {category: category.slug}) }}"
+           class="badge cursor-pointer no-underline transition-colors
+                  {{ currentCategory and currentCategory.id == category.id ? 'bg-[var(--primary)] text-[var(--primary-foreground)] border-[var(--primary)]' : 'hover:bg-[var(--accent)]' }}">
+            {{ category.name }}
+        </a>
     {% endfor %}
 </div>
 
-{# Пагинация #}
-{% if totalPages > 1 %}
-    <nav class="mt-3">
-        <ul class="pagination justify-content-center">
-            {% if currentPage > 1 %}
-                <li class="page-item">
-                    <a class="page-link" href="{{ path('app_article_index', {page: currentPage - 1, category: currentCategory ? currentCategory.slug : null}) }}">
-                        &laquo;
-                    </a>
-                </li>
-            {% endif %}
-            {% for p in max(1, currentPage - 2)..min(totalPages, currentPage + 2) %}
-                <li class="page-item {{ p == currentPage ? 'active' : '' }}">
-                    <a class="page-link" href="{{ path('app_article_index', {page: p, category: currentCategory ? currentCategory.slug : null}) }}">
-                        {{ p }}
-                    </a>
-                </li>
-            {% endfor %}
-            {% if currentPage < totalPages %}
-                <li class="page-item">
-                    <a class="page-link" href="{{ path('app_article_index', {page: currentPage + 1, category: currentCategory ? currentCategory.slug : null}) }}">
-                        &raquo;
-                    </a>
-                </li>
-            {% endif %}
-        </ul>
-    </nav>
+{# Empty state #}
+{% if articles|length == 0 %}
+    <div class="card p-12 text-center">
+        <svg class="mx-auto mb-4 text-[var(--muted-foreground)]" width="40" height="40" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/>
+        </svg>
+        <p class="text-sm text-[var(--muted-foreground)]">Статей пока нет.</p>
+        <code class="mt-2 block text-xs text-[var(--muted-foreground)]">php bin/console app:news:import</code>
+    </div>
 {% endif %}
+
+{# Articles grid #}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for article in articles %}
+        <a href="{{ path('app_article_show', {id: article.id}) }}"
+           class="card flex flex-col overflow-hidden no-underline group hover:shadow-md transition-shadow">
+
+            {% if article.imageUrl %}
+                <div class="h-44 overflow-hidden bg-[var(--muted)] shrink-0">
+                    <img src="{{ article.imageUrl }}" alt="{{ article.title }}"
+                         class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                         onerror="this.parentElement.style.display='none'">
+                </div>
+            {% endif %}
+
+            <div class="flex flex-col flex-1 p-4 gap-2">
+                {% if article.category %}
+                    <span class="badge self-start">{{ article.category.name }}</span>
+                {% endif %}
+
+                <h3 class="text-sm font-semibold leading-snug text-[var(--foreground)] line-clamp-3">
+                    {{ article.title }}
+                </h3>
+
+                {% if article.summary %}
+                    <p class="text-xs text-[var(--muted-foreground)] leading-relaxed line-clamp-2 flex-1">
+                        {{ article.summary }}
+                    </p>
+                {% endif %}
+
+                <div class="flex items-center justify-between pt-1 mt-auto">
+                    <span class="text-xs text-[var(--muted-foreground)]">
+                        {{ article.publishedAt|date('d.m.Y') }}
+                    </span>
+                    {% if article.source %}
+                        <span class="text-xs text-[var(--muted-foreground)] truncate max-w-[120px]">
+                            {{ article.source.name }}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </a>
+    {% endfor %}
+</div>
+
+{# Pagination #}
+{% if totalPages > 1 %}
+    <div class="flex justify-center mt-8">
+        <div class="pagination">
+            {% if currentPage > 1 %}
+                <a class="page-btn"
+                   href="{{ path('app_article_index', {page: currentPage - 1, category: currentCategory ? currentCategory.slug : null}) }}">
+                    &lsaquo;
+                </a>
+            {% endif %}
+
+            {% for p in max(1, currentPage - 2)..min(totalPages, currentPage + 2) %}
+                <a class="page-btn {{ p == currentPage ? 'active' : '' }}"
+                   href="{{ path('app_article_index', {page: p, category: currentCategory ? currentCategory.slug : null}) }}">
+                    {{ p }}
+                </a>
+            {% endfor %}
+
+            {% if currentPage < totalPages %}
+                <a class="page-btn"
+                   href="{{ path('app_article_index', {page: currentPage + 1, category: currentCategory ? currentCategory.slug : null}) }}">
+                    &rsaquo;
+                </a>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}
+
 {% endblock %}

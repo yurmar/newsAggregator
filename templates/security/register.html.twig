@@ -2,49 +2,81 @@
 
 {% block title %}Регистрация — NewsAgg{% endblock %}
 
-{% block body %}
-<div class="row justify-content-center">
-    <div class="col-md-5">
-        <div class="card p-4 mt-4">
-            <h2 class="mb-4 text-center"><i class="fa fa-user-plus me-2"></i>Регистрация</h2>
+{% block stylesheets %}
+<style>
+    .registration-form input[type="text"],
+    .registration-form input[type="email"],
+    .registration-form input[type="password"] {
+        display: block;
+        width: 100%;
+    }
+    .registration-form ul {
+        margin: 0.25rem 0 0;
+        padding: 0 0 0 1rem;
+        font-size: 0.75rem;
+        color: var(--destructive);
+    }
+</style>
+{% endblock %}
 
-            {{ form_start(registrationForm, {'attr': {'novalidate': 'novalidate'}}) }}
+{% block body %}
+<div class="flex justify-center items-start pt-8">
+    <div class="w-full max-w-md">
+
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold text-[var(--foreground)]">Создать аккаунт</h1>
+            <p class="mt-1 text-sm text-[var(--muted-foreground)]">Заполните данные для регистрации</p>
+        </div>
+
+        <div class="card p-6">
+
+            {{ form_start(registrationForm, {
+                attr: { novalidate: 'novalidate', class: 'registration-form space-y-4' }
+            }) }}
 
             {% if registrationForm.vars.errors|length > 0 %}
-                <div class="alert alert-danger">
+                <div class="alert alert-danger text-sm mb-4">
                     {{ form_errors(registrationForm) }}
                 </div>
             {% endif %}
 
-            <div class="mb-3">
+            <div>
                 {{ form_label(registrationForm.name) }}
-                {{ form_widget(registrationForm.name) }}
+                {{ form_widget(registrationForm.name, {attr: {placeholder: 'Ваше имя'}}) }}
                 {{ form_errors(registrationForm.name) }}
             </div>
-            <div class="mb-3">
+
+            <div>
                 {{ form_label(registrationForm.email) }}
-                {{ form_widget(registrationForm.email) }}
+                {{ form_widget(registrationForm.email, {attr: {placeholder: 'email@example.com'}}) }}
                 {{ form_errors(registrationForm.email) }}
             </div>
-            <div class="mb-3">
+
+            <div>
                 {{ form_label(registrationForm.plainPassword.first) }}
-                {{ form_widget(registrationForm.plainPassword.first) }}
+                {{ form_widget(registrationForm.plainPassword.first, {attr: {placeholder: '••••••••'}}) }}
                 {{ form_errors(registrationForm.plainPassword.first) }}
             </div>
-            <div class="mb-3">
+
+            <div>
                 {{ form_label(registrationForm.plainPassword.second) }}
-                {{ form_widget(registrationForm.plainPassword.second) }}
+                {{ form_widget(registrationForm.plainPassword.second, {attr: {placeholder: '••••••••'}}) }}
                 {{ form_errors(registrationForm.plainPassword) }}
             </div>
 
-            <button type="submit" class="btn btn-success w-100">Зарегистрироваться</button>
-            {{ form_end(registrationForm) }}
+            <button type="submit" class="btn btn-primary w-full mt-2">
+                Зарегистрироваться
+            </button>
 
-            <hr>
-            <p class="text-center mb-0">
-                Уже есть аккаунт? <a href="{{ path('app_login') }}">Войти</a>
-            </p>
+            {{ form_end(registrationForm) }}
         </div>
+
+        <p class="text-center mt-4 text-sm text-[var(--muted-foreground)]">
+            Уже есть аккаунт?
+            <a href="{{ path('app_login') }}" class="text-[var(--foreground)] font-medium hover:underline">
+                Войти
+            </a>
+        </p>
     </div>
 </div>
 {% endblock %}

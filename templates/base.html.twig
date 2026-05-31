@@ -1,109 +1,153 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" class="">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}News Aggregator{% endblock %}</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body { background-color: #f8f9fa; }
-        .navbar-brand { font-weight: 700; font-size: 1.4rem; }
-        .card { border: none; box-shadow: 0 1px 4px rgba(0,0,0,.1); transition: box-shadow .2s; }
-        .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.15); }
-        .article-img { height: 180px; object-fit: cover; }
-        #notification-badge { display: none; }
-        #notification-badge.active { display: inline-block; }
-    </style>
+    <title>{% block title %}NewsAgg{% endblock %}</title>
+    <link rel="stylesheet" href="{{ asset('styles/app.css') }}">
     {% block stylesheets %}{% endblock %}
+    {% block importmap %}{{ importmap('app') }}{% endblock %}
 </head>
-<body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-    <div class="container">
-        <a class="navbar-brand" href="{{ path('app_article_index') }}">
-            <i class="fa fa-newspaper me-2"></i>NewsAgg
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navMenu">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ path('app_article_index') }}">Все новости</a>
-                </li>
-            </ul>
-            <ul class="navbar-nav ms-auto align-items-center">
-                {% if app.user %}
-                    <li class="nav-item me-2 position-relative">
-                        <a class="nav-link" href="{{ path('app_notification_index') }}" title="Уведомления">
-                            <i class="fa fa-bell"></i>
-                            <span id="notification-badge" class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill"></span>
-                        </a>
-                    </li>
-                    {% if is_granted('ROLE_ADMIN') %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ path('admin_dashboard') }}"><i class="fa fa-cog me-1"></i>Админ</a>
-                        </li>
-                    {% endif %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                            <i class="fa fa-user me-1"></i>{{ app.user.name }}
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ path('app_profile') }}">Профиль</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ path('app_logout') }}">Выход</a></li>
-                        </ul>
-                    </li>
-                {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ path('app_login') }}">Войти</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="btn btn-outline-light btn-sm ms-2" href="{{ path('app_register') }}">Регистрация</a>
-                    </li>
-                {% endif %}
-            </ul>
-        </div>
-    </div>
-</nav>
+<body class="min-h-screen bg-background text-foreground flex flex-col">
 
-<div class="container">
+<header class="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-sm">
+    <div class="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between gap-6">
+
+        <a href="{{ path('app_article_index') }}"
+           class="flex items-center gap-2 font-semibold text-sm text-foreground shrink-0 no-underline">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 13h6M9 17h4"/>
+            </svg>
+            NewsAgg
+        </a>
+
+        <nav class="flex items-center gap-1">
+            <a href="{{ path('app_article_index') }}" class="nav-link">Все новости</a>
+        </nav>
+
+        <div class="flex items-center gap-2 shrink-0">
+
+            <button id="theme-toggle" aria-label="Тема"
+                    class="btn btn-ghost w-9 h-9 p-0 rounded-md">
+                <svg id="icon-sun" class="w-4 h-4 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="4"/>
+                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+                </svg>
+                <svg id="icon-moon" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+            </button>
+
+            {% if app.user %}
+                <a href="{{ path('app_notification_index') }}" aria-label="Уведомления"
+                   class="btn btn-ghost w-9 h-9 p-0 rounded-md relative no-underline">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                    </svg>
+                    <span id="notification-badge"
+                          class="hidden absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 text-[10px] font-bold leading-4 text-center rounded-full bg-destructive" style="color:#fff"></span>
+                </a>
+
+                {% if is_granted('ROLE_ADMIN') %}
+                    <a href="{{ path('admin_dashboard') }}" class="nav-link">Админ</a>
+                {% endif %}
+
+                <div class="relative" id="user-menu-wrap">
+                    <button id="user-menu-btn" class="btn btn-ghost h-9 px-3 gap-2 text-sm">
+                        <span class="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-bold">
+                            {{ app.user.name|first|upper }}
+                        </span>
+                        <span class="hidden sm:inline">{{ app.user.name }}</span>
+                        <svg class="w-3 h-3 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="m6 9 6 6 6-6"/>
+                        </svg>
+                    </button>
+                    <div id="user-menu"
+                         class="hidden absolute right-0 top-full mt-1 w-44 rounded-lg border border-border bg-card shadow-lg py-1 z-50">
+                        <a href="{{ path('app_profile') }}"
+                           class="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-accent transition-colors no-underline">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                            </svg>
+                            Профиль
+                        </a>
+                        <div class="my-1 border-t border-border"></div>
+                        <a href="{{ path('app_logout') }}"
+                           class="flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-accent transition-colors no-underline">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+                            </svg>
+                            Выйти
+                        </a>
+                    </div>
+                </div>
+            {% else %}
+                <a href="{{ path('app_login') }}" class="nav-link">Войти</a>
+                <a href="{{ path('app_register') }}" class="btn btn-primary h-9 px-4 text-sm no-underline">Регистрация</a>
+            {% endif %}
+        </div>
+
+    </div>
+</header>
+
+<main class="flex-1 max-w-7xl mx-auto w-full px-6 py-8">
     {% for type, messages in app.flashes %}
         {% for message in messages %}
-            <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+            <div class="alert alert-{{ type == 'error' ? 'danger' : type }} mb-4">{{ message }}</div>
         {% endfor %}
     {% endfor %}
 
     {% block body %}{% endblock %}
-</div>
+</main>
 
-<footer class="mt-5 py-4 bg-dark text-white text-center">
-    <div class="container">
-        <small>&copy; {{ "now"|date("Y") }} NewsAggregator</small>
+<footer class="border-t border-border">
+    <div class="max-w-7xl mx-auto px-6 h-12 flex items-center justify-between">
+        <span class="text-xs text-muted-foreground">&copy; {{ "now"|date("Y") }} NewsAggregator</span>
+        <span class="text-xs text-muted-foreground">Enterprise News Platform</span>
     </div>
 </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function () {
+    var html = document.documentElement;
+    var stored = localStorage.getItem('theme');
+    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (stored === 'dark' || (!stored && prefersDark)) html.classList.add('dark');
+
+    function applyIcons() {
+        var dark = html.classList.contains('dark');
+        document.getElementById('icon-sun').classList.toggle('hidden', !dark);
+        document.getElementById('icon-moon').classList.toggle('hidden', dark);
+    }
+    applyIcons();
+
+    document.getElementById('theme-toggle').addEventListener('click', function () {
+        html.classList.toggle('dark');
+        localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+        applyIcons();
+    });
+
+    var menuBtn = document.getElementById('user-menu-btn');
+    var menu = document.getElementById('user-menu');
+    if (menuBtn && menu) {
+        menuBtn.addEventListener('click', function (e) { e.stopPropagation(); menu.classList.toggle('hidden'); });
+        document.addEventListener('click', function () { menu.classList.add('hidden'); });
+    }
+})();
+</script>
 
 {% if app.user %}
 <script>
-(function() {
+(function () {
     function updateBadge() {
         fetch('{{ path('app_notification_count') }}')
-            .then(r => r.json())
-            .then(data => {
-                const badge = document.getElementById('notification-badge');
-                if (data.count > 0) {
-                    badge.textContent = data.count;
-                    badge.classList.add('active');
-                } else {
-                    badge.classList.remove('active');
-                }
-            }).catch(() => {});
+            .then(function(r){ return r.json(); })
+            .then(function(data) {
+                var badge = document.getElementById('notification-badge');
+                if (data.count > 0) { badge.textContent = data.count; badge.classList.remove('hidden'); }
+                else { badge.classList.add('hidden'); }
+            }).catch(function(){});
     }
     updateBadge();
     setInterval(updateBadge, 30000);
