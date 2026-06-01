@@ -1,0 +1,88 @@
+/* Match EasyAdmin dark theme to main site's blue dark palette */
+
+body.ea-dark-scheme {
+    --bs-body-bg: oklch(0.17 0.05 255);
+    --bs-body-bg-rgb: 16, 22, 45;
+    --bs-body-color: oklch(0.94 0.01 255);
+    --bs-body-color-rgb: 236, 238, 248;
+    --bs-card-bg: oklch(0.21 0.05 255);
+    --bs-border-color: oklch(1 0 0 / 10%);
+    --bs-border-color-translucent: oklch(1 0 0 / 8%);
+    --bs-secondary-bg: oklch(0.27 0.04 255);
+    --bs-tertiary-bg: oklch(0.24 0.04 255);
+    --bs-secondary-color: oklch(0.65 0.03 255);
+    --bs-tertiary-color: oklch(0.55 0.03 255);
+    --bs-emphasis-color: oklch(0.94 0.01 255);
+    --bs-heading-color: oklch(0.94 0.01 255);
+    --bs-link-color: oklch(0.72 0.1 255);
+    --bs-link-hover-color: oklch(0.85 0.08 255);
+    --body-bg: oklch(0.17 0.05 255);
+    --border-color: oklch(1 0 0 / 8%);
+    --border-primary-color: oklch(1 0 0 / 10%);
+    --border-secondary-color: oklch(1 0 0 / 8%);
+    --border-tertiary-color: oklch(1 0 0 / 5%);
+}
+
+body.ea-dark-scheme .sidebar,
+body.ea-dark-scheme aside.sidebar,
+body.ea-dark-scheme .main-header {
+    background-color: oklch(0.19 0.05 255) !important;
+    border-color: oklch(1 0 0 / 10%) !important;
+}
+
+body.ea-dark-scheme .responsive-header {
+    background-color: oklch(0.19 0.05 255) !important;
+    border-color: oklch(1 0 0 / 10%) !important;
+}
+
+body.ea-dark-scheme .content-top {
+    background-color: oklch(0.20 0.05 255);
+    border-color: oklch(1 0 0 / 10%) !important;
+}
+
+body.ea-dark-scheme .card {
+    background-color: oklch(0.21 0.05 255);
+    border-color: oklch(1 0 0 / 10%);
+}
+
+body.ea-dark-scheme .form-control,
+body.ea-dark-scheme .form-select,
+body.ea-dark-scheme .form-control:focus,
+body.ea-dark-scheme .form-select:focus {
+    background-color: oklch(0.21 0.028 255);
+    border-color: oklch(1 0 0 / 14%);
+    color: oklch(0.94 0.01 255);
+}
+
+body.ea-dark-scheme .dropdown-menu {
+    background-color: oklch(0.18 0.03 255);
+    border-color: oklch(1 0 0 / 8%);
+}
+
+body.ea-dark-scheme .dropdown-item:hover,
+body.ea-dark-scheme .dropdown-item:focus,
+body.ea-dark-scheme .dropdown-item.active {
+    background-color: oklch(0.24 0.025 255);
+    color: oklch(0.94 0.01 255);
+}
+
+body.ea-dark-scheme .table {
+    --bs-table-bg: transparent;
+    --bs-table-striped-bg: oklch(0.16 0.025 255);
+    --bs-table-hover-bg: oklch(0.20 0.025 255);
+    --bs-table-border-color: oklch(1 0 0 / 8%);
+    color: oklch(0.94 0.01 255);
+}
+
+body.ea-dark-scheme .badge.text-bg-primary { background-color: oklch(0.45 0.13 255) !important; }
+body.ea-dark-scheme .badge.text-bg-success { background-color: oklch(0.4 0.12 145) !important; }
+body.ea-dark-scheme .badge.text-bg-warning { background-color: oklch(0.55 0.15 85) !important; }
+body.ea-dark-scheme .badge.text-bg-danger  { background-color: oklch(0.45 0.18 25) !important; }
+body.ea-dark-scheme .badge.text-bg-info    { background-color: oklch(0.45 0.12 200) !important; }
+
+body.ea-dark-scheme .shadow-sm { box-shadow: 0 1px 3px oklch(0 0 0 / 40%) !important; }
+body.ea-dark-scheme .shadow    { box-shadow: 0 2px 8px oklch(0 0 0 / 50%) !important; }
+
+body.ea-dark-scheme .progress {
+    background-color: oklch(0.24 0.025 255);
+}
