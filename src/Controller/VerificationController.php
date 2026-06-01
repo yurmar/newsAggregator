@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\VerificationCode;
+use App\Event\UserRegisteredEvent;
 use App\Message\SendTelegramConfirmationMessage;
 use App\Message\SendVerificationCodeMessage;
 use App\Repository\UserRepository;
 use App\Repository\VerificationCodeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -22,6 +24,7 @@ class VerificationController extends AbstractController
         private readonly UserRepository $userRepository,
         private readonly VerificationCodeRepository $codeRepository,
         private readonly EntityManagerInterface $em,
+        private readonly EventDispatcherInterface $dispatcher,
     ) {}
 
     #[Route('/verify', name: 'app_verify', methods: ['GET', 'POST'])]
@@ -77,6 +80,8 @@ class VerificationController extends AbstractController
                     $code->setConfirmedAt(new \DateTime());
                     $session->remove('_verification_user_id');
                     $this->em->flush();
+
+                    $this->dispatcher->dispatch(new UserRegisteredEvent($user->getName()));
 
                     $this->addFlash('success', 'Email успешно подтверждён. Добро пожаловать!');
                     return $this->redirectToRoute('app_login');

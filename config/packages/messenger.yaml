@@ -15,5 +15,5 @@ framework:
                 dsn: 'doctrine://default?queue_name=failed'
 
         routing:
-            # Сюда добавляй свои Message-классы:
-            # App\Message\MyMessage: async
+            App\Message\SendVerificationCodeMessage: async
+            App\Message\SendTelegramConfirmationMessage: async

@@ -6,13 +6,11 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Entity\VerificationCode;
-use App\Event\UserRegisteredEvent;
 use App\Form\RegistrationFormType;
 use App\Message\SendTelegramConfirmationMessage;
 use App\Message\SendVerificationCodeMessage;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -47,7 +45,6 @@ class SecurityController extends AbstractController
         UserPasswordHasherInterface $hasher,
         EntityManagerInterface $em,
         MessageBusInterface $bus,
-        EventDispatcherInterface $dispatcher,
     ): Response {
         if ($this->getUser()) {
             return $this->redirectToRoute('app_article_index');
@@ -68,8 +65,6 @@ class SecurityController extends AbstractController
 
             $bus->dispatch(new SendVerificationCodeMessage($user->getId(), $code->getCode()));
             $bus->dispatch(new SendTelegramConfirmationMessage($user->getId(), $code->getId()));
-
-            $dispatcher->dispatch(new UserRegisteredEvent($user->getName()));
 
             $request->getSession()->set('_verification_user_id', $user->getId());
 
