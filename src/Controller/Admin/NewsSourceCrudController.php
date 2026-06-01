@@ -28,8 +28,9 @@ class NewsSourceCrudController extends AbstractCrudController
             TextField::new('name', 'Название'),
             UrlField::new('url', 'URL'),
             ChoiceField::new('type', 'Тип')->setChoices([
-                'RSS' => NewsSource::TYPE_RSS,
-                'API' => NewsSource::TYPE_API,
+                'RSS'  => NewsSource::TYPE_RSS,
+                'API'  => NewsSource::TYPE_API,
+                'HTML' => NewsSource::TYPE_HTML,
             ]),
             AssociationField::new('defaultCategory', 'Категория по умолчанию'),
             BooleanField::new('isActive', 'Активен'),

@@ -14,8 +14,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: 'news_sources')]
 class NewsSource
 {
-    public const TYPE_RSS = 'rss';
-    public const TYPE_API = 'api';
+    public const TYPE_RSS  = 'rss';
+    public const TYPE_API  = 'api';
+    public const TYPE_HTML = 'html';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

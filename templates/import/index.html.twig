@@ -1,0 +1,169 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Импорт новостей — NewsAgg{% endblock %}
+
+{% block body %}
+<div class="max-w-4xl mx-auto" style="display:flex;flex-direction:column;gap:2rem">
+
+    {# ── Заголовок + кнопка «Импортировать все» ─────────────────────── #}
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+        <div>
+            <h1 style="font-size:1.25rem;font-weight:700;margin:0">Импорт новостей</h1>
+            <p style="font-size:0.875rem;color:var(--muted-foreground);margin:0.25rem 0 0">Управление источниками и запуск импорта.</p>
+        </div>
+        <form method="post" action="{{ path('app_import_run_all') }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('import_run_all') }}">
+            <button type="submit" class="btn btn-primary" style="height:2.25rem;padding:0 1rem;font-size:0.875rem" onclick="btnLoad(this)">
+                Импортировать все активные
+            </button>
+        </form>
+    </div>
+
+    {# ── Форма добавления источника ────────────────────────────────── #}
+    <div class="card" style="padding:1.5rem">
+        <h2 style="font-size:1rem;font-weight:600;margin:0 0 1rem">Добавить источник</h2>
+        <form method="post" action="{{ path('app_import_source_add') }}" style="display:flex;flex-direction:column;gap:1rem">
+            <input type="hidden" name="_token" value="{{ csrf_token('source_add') }}">
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+                <div>
+                    <label for="src_name" style="display:block;font-size:0.75rem;font-weight:500;color:var(--muted-foreground);margin-bottom:0.25rem">Название *</label>
+                    <input type="text" id="src_name" name="name" required
+                           placeholder="Например: Hacker News"
+                           style="width:100%;box-sizing:border-box">
+                </div>
+                <div>
+                    <label for="src_type" style="display:block;font-size:0.75rem;font-weight:500;color:var(--muted-foreground);margin-bottom:0.25rem">Тип *</label>
+                    <select id="src_type" name="type" style="width:100%;box-sizing:border-box">
+                        <option value="rss">RSS / Atom</option>
+                        <option value="api">API (JSON)</option>
+                        <option value="html">HTML-парсинг</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label for="src_url" style="display:block;font-size:0.75rem;font-weight:500;color:var(--muted-foreground);margin-bottom:0.25rem">URL источника *</label>
+                <input type="url" id="src_url" name="url" required
+                       placeholder="https://..."
+                       style="width:100%;box-sizing:border-box">
+            </div>
+
+            <div style="padding:0.75rem;border-radius:0.375rem;border:1px solid var(--border);background:var(--muted);font-size:0.75rem;color:var(--muted-foreground);line-height:1.6">
+                <strong style="color:var(--foreground)">Примеры URL:</strong><br>
+                <b>RSS:</b> https://lenta.ru/rss/news &nbsp;|&nbsp;
+                <b>API:</b> https://hacker-news.firebaseio.com/v0 &nbsp;|&nbsp;
+                <b>HTML:</b> https://news.ycombinator.com
+            </div>
+
+            <div style="display:flex;justify-content:flex-end">
+                <button type="submit" class="btn btn-primary" style="height:2.25rem;padding:0 1.25rem;font-size:0.875rem">
+                    Добавить источник
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {# ── Список источников ─────────────────────────────────────────── #}
+    <div>
+        <h2 style="font-size:1rem;font-weight:600;margin:0 0 0.75rem">
+            Источники
+            <span style="font-size:0.75rem;font-weight:400;color:var(--muted-foreground)">({{ sources|length }})</span>
+        </h2>
+
+        {% if sources is empty %}
+            <div class="card" style="padding:3rem;text-align:center">
+                <p style="font-size:0.875rem;color:var(--muted-foreground);margin:0">
+                    Источников пока нет. Добавьте первый выше.
+                </p>
+            </div>
+        {% else %}
+            <div style="display:flex;flex-direction:column;gap:0.5rem">
+                {% for source in sources %}
+                    <div class="card" style="padding:1rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;opacity:{{ source.isActive ? '1' : '0.55' }}">
+
+                        {# Status dot #}
+                        <span style="flex-shrink:0;width:0.5rem;height:0.5rem;border-radius:9999px;background:{{ source.isActive ? '#10b981' : 'var(--muted-foreground)' }}"
+                              title="{{ source.isActive ? 'Активен' : 'Отключён' }}"></span>
+
+                        {# Type badge #}
+                        {% if source.type == 'rss' %}
+                            <span style="flex-shrink:0;padding:0.125rem 0.375rem;border-radius:0.25rem;font-size:0.625rem;font-weight:700;text-transform:uppercase;background:#fed7aa;color:#c2410c">RSS</span>
+                        {% elseif source.type == 'api' %}
+                            <span style="flex-shrink:0;padding:0.125rem 0.375rem;border-radius:0.25rem;font-size:0.625rem;font-weight:700;text-transform:uppercase;background:#bfdbfe;color:#1d4ed8">API</span>
+                        {% else %}
+                            <span style="flex-shrink:0;padding:0.125rem 0.375rem;border-radius:0.25rem;font-size:0.625rem;font-weight:700;text-transform:uppercase;background:#bbf7d0;color:#15803d">HTML</span>
+                        {% endif %}
+
+                        {# Name + URL #}
+                        <div style="flex:1;min-width:0;overflow:hidden">
+                            <p style="font-weight:600;font-size:0.875rem;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ source.name }}</p>
+                            <a href="{{ source.url }}" target="_blank" rel="noopener noreferrer"
+                               style="font-size:0.75rem;color:var(--muted-foreground);text-decoration:none;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:28rem">
+                                {{ source.url }}
+                            </a>
+                            {% if source.lastFetchedAt %}
+                                <p style="font-size:0.6875rem;color:var(--muted-foreground);margin:0.125rem 0 0">
+                                    Последний импорт: {{ source.lastFetchedAt|date('d.m.Y H:i') }}
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        {# Actions #}
+                        <div style="display:flex;align-items:center;gap:0.375rem;flex-shrink:0">
+
+                            {% if source.isActive %}
+                                <form method="post" action="{{ path('app_import_run', {id: source.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('import_run') }}">
+                                    <button type="submit" class="btn btn-secondary"
+                                            style="height:2rem;padding:0 0.75rem;font-size:0.75rem"
+                                            onclick="btnLoad(this)">
+                                        Импорт
+                                    </button>
+                                </form>
+                            {% endif %}
+
+                            <form method="post" action="{{ path('app_import_toggle', {id: source.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('source_toggle_' ~ source.id) }}">
+                                <button type="submit" title="{{ source.isActive ? 'Отключить' : 'Включить' }}"
+                                        class="btn btn-ghost"
+                                        style="width:2rem;height:2rem;padding:0;display:flex;align-items:center;justify-content:center">
+                                    {% if source.isActive %}
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+                                    {% else %}
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                    {% endif %}
+                                </button>
+                            </form>
+
+                            <form method="post" action="{{ path('app_import_delete', {id: source.id}) }}"
+                                  onsubmit="return confirm('Удалить источник «{{ source.name }}»?\nСтатьи останутся в базе.')">
+                                <input type="hidden" name="_token" value="{{ csrf_token('source_delete_' ~ source.id) }}">
+                                <button type="submit" title="Удалить"
+                                        class="btn btn-ghost"
+                                        style="width:2rem;height:2rem;padding:0;display:flex;align-items:center;justify-content:center;color:var(--muted-foreground)">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+function btnLoad(btn) {
+    setTimeout(function () {
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        btn.style.cursor = 'wait';
+        btn.textContent = 'Загрузка…';
+    }, 0);
+}
+</script>
+{% endblock %}
