@@ -23,6 +23,9 @@
 
         <nav class="flex items-center gap-1">
             <a href="{{ path('app_article_index') }}" class="nav-link">Все новости</a>
+            {% if app.user %}
+                <a href="{{ path('app_import_index') }}" class="nav-link">Импорт</a>
+            {% endif %}
         </nav>
 
         <div class="flex items-center gap-2 shrink-0">
