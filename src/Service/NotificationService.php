@@ -31,6 +31,23 @@ class NotificationService
         return $notification;
     }
 
+    public function broadcast(string $type, string $message): void
+    {
+        if ($this->mercureHub === null) {
+            return;
+        }
+
+        try {
+            $update = new Update(
+                '/notifications/broadcast',
+                json_encode(['type' => $type, 'message' => $message], JSON_THROW_ON_ERROR),
+            );
+            $this->mercureHub->publish($update);
+        } catch (\Throwable) {
+            // Mercure недоступен
+        }
+    }
+
     private function publishToMercure(User $user, Notification $notification): void
     {
         if ($this->mercureHub === null) {

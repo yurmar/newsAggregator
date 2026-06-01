@@ -10,6 +10,10 @@
 </head>
 <body class="min-h-screen bg-background text-foreground flex flex-col">
 
+<div id="toast-container"
+     style="position:fixed;top:1rem;right:1rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;pointer-events:none;"
+     aria-live="polite" aria-atomic="false"></div>
+
 <header class="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-sm">
     <div class="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between gap-6">
 
@@ -146,17 +150,87 @@
 {% if app.user %}
 <script>
 (function () {
+    /* ── Notification badge ── */
     function updateBadge() {
         fetch('{{ path('app_notification_count') }}')
-            .then(function(r){ return r.json(); })
-            .then(function(data) {
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
                 var badge = document.getElementById('notification-badge');
+                if (!badge) return;
                 if (data.count > 0) { badge.textContent = data.count; badge.classList.remove('hidden'); }
                 else { badge.classList.add('hidden'); }
-            }).catch(function(){});
+            }).catch(function () {});
     }
     updateBadge();
     setInterval(updateBadge, 30000);
+
+    /* ── Toast notifications ── */
+    var ICONS   = { user_registered: '👤', user_login: '🔑', news_imported: '📰' };
+    var COLORS  = { user_registered: '#2563eb', user_login: '#059669', news_imported: '#7c3aed' };
+
+    function showToast(type, message) {
+        var container = document.getElementById('toast-container');
+        if (!container) return;
+
+        var toast = document.createElement('div');
+        toast.setAttribute('role', 'alert');
+        toast.style.cssText = [
+            'background:' + (COLORS[type] || '#475569'),
+            'display:flex',
+            'align-items:flex-start',
+            'gap:0.75rem',
+            'padding:0.75rem 1rem',
+            'border-radius:0.5rem',
+            'box-shadow:0 4px 6px -1px rgba(0,0,0,.25)',
+            'color:#fff',
+            'font-size:0.875rem',
+            'line-height:1.4',
+            'cursor:pointer',
+            'pointer-events:auto',
+            'width:20rem',
+            'max-width:calc(100vw - 2rem)',
+            'transform:translateX(120%)',
+            'transition:transform .3s ease-out',
+        ].join(';');
+
+        toast.innerHTML =
+            '<span style="font-size:1.1rem;flex-shrink:0;margin-top:.05rem">' + (ICONS[type] || 'ℹ️') + '</span>' +
+            '<span style="flex:1">' + message + '</span>';
+
+        function dismiss() {
+            toast.style.transform = 'translateX(120%)';
+            toast.addEventListener('transitionend', function () { toast.remove(); }, { once: true });
+        }
+
+        toast.addEventListener('click', function () { clearTimeout(timer); dismiss(); });
+        container.appendChild(toast);
+
+        requestAnimationFrame(function () {
+            requestAnimationFrame(function () { toast.style.transform = 'translateX(0)'; });
+        });
+
+        var timer = setTimeout(dismiss, 5000);
+    }
+
+    /* ── SSE via Mercure ── */
+    try {
+        var hubUrl = new URL('{{ mercure_public_url }}');
+        hubUrl.searchParams.append('topic', '/notifications/broadcast');
+
+        var es = new EventSource(hubUrl.toString());
+        es.onmessage = function (e) {
+            try {
+                var data = JSON.parse(e.data);
+                if (data.type && data.message) {
+                    showToast(data.type, data.message);
+                    if (data.type === 'news_imported') {
+                        updateBadge();
+                    }
+                }
+            } catch (_) {}
+        };
+        es.onerror = function () { /* Mercure недоступен — продолжаем с поллингом */ };
+    } catch (_) {}
 })();
 </script>
 {% endif %}

@@ -84,6 +84,10 @@ class NewsImportService
         $this->em->flush();
 
         if ($imported > 0) {
+            $this->notificationService->broadcast(
+                'news_imported',
+                sprintf('Импортировано %d новых статей из «%s»', $imported, $source->getName()),
+            );
             $this->notifyAllUsers($source->getName(), $imported);
         }
 
