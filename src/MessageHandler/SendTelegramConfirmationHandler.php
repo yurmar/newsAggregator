@@ -29,18 +29,31 @@ final class SendTelegramConfirmationHandler
         private readonly string $chatId,
     ) {}
 
+    private function debug(string $msg): void
+    {
+        $line = sprintf("[%s] [Telegram] %s\n", date('Y-m-d H:i:s'), $msg);
+        fwrite(STDERR, $line);
+    }
+
     public function __invoke(SendTelegramConfirmationMessage $message): void
     {
+        $this->debug(sprintf('Handler invoked. userId=%d codeId=%d', $message->userId, $message->confirmationCodeId));
+
         $user = $this->userRepository->find($message->userId);
         $code = $this->codeRepository->find($message->confirmationCodeId);
 
         if (!$user || !$code) {
-            $this->logger->error('SendTelegramConfirmation: user or code not found', [
+            $this->debug(sprintf('NOT FOUND: user=%s code=%s', $user ? 'ok' : 'NULL', $code ? 'ok' : 'NULL'));
+            $this->logger->error('[Telegram] User or code not found', [
                 'userId'             => $message->userId,
                 'confirmationCodeId' => $message->confirmationCodeId,
             ]);
             return;
         }
+
+        $this->debug(sprintf('User=%s codeValue=%s chatId=%s tokenPrefix=%s',
+            $user->getEmail(), $code->getCode(), $this->chatId, substr($this->botToken, 0, 8)
+        ));
 
         $text = sprintf(
             "Привет, %s!\n\nВаш код подтверждения: *%s*\n\nКод действителен 10 минут.",
@@ -49,22 +62,27 @@ final class SendTelegramConfirmationHandler
         );
 
         try {
-            $response = $this->httpClient->request('POST', sprintf(
-                'https://api.telegram.org/bot%s/sendMessage',
-                $this->botToken,
-            ), [
-                'json' => [
-                    'chat_id'    => $this->chatId,
-                    'text'       => $text,
-                    'parse_mode' => 'Markdown',
-                ],
-            ]);
+            $url = sprintf('https://api.telegram.org/bot%s/sendMessage', $this->botToken);
+            $payload = [
+                'chat_id'    => $this->chatId,
+                'text'       => $text,
+                'parse_mode' => 'Markdown',
+            ];
 
-            if ($response->getStatusCode() !== 200) {
+            $this->debug('Sending HTTP request to Telegram...');
+
+            $response = $this->httpClient->request('POST', $url, ['json' => $payload]);
+
+            $statusCode = $response->getStatusCode();
+            $responseBody = $response->getContent(false);
+
+            $this->debug(sprintf('Response: status=%d body=%s', $statusCode, $responseBody));
+
+            if ($statusCode !== 200) {
                 throw new \RuntimeException(sprintf(
                     'Telegram API error %d: %s',
-                    $response->getStatusCode(),
-                    $response->getContent(false),
+                    $statusCode,
+                    $responseBody,
                 ));
             }
 
@@ -72,11 +90,15 @@ final class SendTelegramConfirmationHandler
             $code->setSentAt(new \DateTimeImmutable());
             $this->em->flush();
 
+            $this->debug('SUCCESS — status updated to SENT');
+
         } catch (\Throwable $e) {
-            $this->logger->error('Failed to send Telegram confirmation code', [
+            $this->debug(sprintf('EXCEPTION: %s — %s', get_class($e), $e->getMessage()));
+            $this->logger->error('[Telegram] Failed to send confirmation code', [
                 'userId'             => $message->userId,
                 'confirmationCodeId' => $message->confirmationCodeId,
                 'error'              => $e->getMessage(),
+                'exceptionClass'     => get_class($e),
             ]);
 
             $code->setStatus(VerificationCode::STATUS_FAILED);

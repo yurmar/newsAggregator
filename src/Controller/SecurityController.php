@@ -68,10 +68,6 @@ class SecurityController extends AbstractController
 
             $request->getSession()->set('_verification_user_id', $user->getId());
 
-            $this->addFlash('info', sprintf(
-                'Регистрация прошла успешно! Ваш код подтверждения: %s',
-                $code->getCode()
-            ));
             return $this->redirectToRoute('app_verify');
         }
 

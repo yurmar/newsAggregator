@@ -142,7 +142,7 @@ class VerificationController extends AbstractController
         $bus->dispatch(new SendVerificationCodeMessage($user->getId(), $newCode));
         $bus->dispatch(new SendTelegramConfirmationMessage($user->getId(), $existing->getId()));
 
-        $this->addFlash('info', sprintf('Новый код подтверждения: %s', $newCode));
+        $this->addFlash('info', 'Новый код отправлен в Telegram.');
         return $this->redirectToRoute('app_verify');
     }
 }
