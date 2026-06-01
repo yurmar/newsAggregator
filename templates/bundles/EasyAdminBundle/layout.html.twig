@@ -1,0 +1,14 @@
+{% extends '@!EasyAdmin/layout.html.twig' %}
+
+{# Inject theme sync BEFORE EasyAdmin's page-color-scheme.js reads localStorage #}
+{% block javascript_page_color_scheme %}
+    <script>
+    (function () {
+        var t = localStorage.getItem('theme');
+        if (t === 'dark' || t === 'light') {
+            localStorage.setItem('ea/colorScheme', t);
+        }
+    }());
+    </script>
+    {{ parent() }}
+{% endblock %}
