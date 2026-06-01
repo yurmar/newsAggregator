@@ -250,4 +250,17 @@
   }
   .page-btn:hover { background-color: var(--accent); color: var(--foreground); }
   .page-btn.active { background-color: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+
+  /* Search highlight */
+  mark.search-highlight {
+    background-color: oklch(0.93 0.14 85);
+    color: oklch(0.28 0.1 80);
+    border-radius: 2px;
+    padding: 0 2px;
+    font-style: inherit;
+  }
+  .dark mark.search-highlight {
+    background-color: oklch(0.38 0.12 80);
+    color: oklch(0.95 0.08 85);
+  }
 }

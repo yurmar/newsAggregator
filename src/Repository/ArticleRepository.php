@@ -34,6 +34,57 @@ class ArticleRepository extends ServiceEntityRepository
         return new Paginator($qb);
     }
 
+    /**
+     * Full-text search across title, summary and content.
+     * Uses MySQL FULLTEXT index when available, falls back to LIKE.
+     *
+     * @return array<array<string, mixed>>
+     */
+    public function search(string $query, int $limit = 20): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $likeParam = '%' . str_replace(['%', '_'], ['\\%', '\\_'], $query) . '%';
+
+        $safeLimit = (int) $limit;
+
+        if (mb_strlen($query) >= 3) {
+            try {
+                // Build BOOLEAN MODE query: each word gets a prefix wildcard for partial matching
+                $words = array_filter(preg_split('/\s+/', trim($query)));
+                $ftQuery = implode(' ', array_map(
+                    static fn(string $w) => preg_replace('/[+\-><()~*"@\\\\]/', '', $w) . '*',
+                    $words,
+                ));
+
+                return $conn->executeQuery(
+                    'SELECT a.id, a.title, a.summary, a.image_url, a.published_at,
+                            s.name AS source_name, c.name AS category_name
+                     FROM articles a
+                     LEFT JOIN news_sources s ON a.source_id = s.id
+                     LEFT JOIN categories c ON a.category_id = c.id
+                     WHERE MATCH(a.title, a.summary, a.content) AGAINST(? IN BOOLEAN MODE)
+                     ORDER BY MATCH(a.title, a.summary, a.content) AGAINST(?) DESC
+                     LIMIT ' . $safeLimit,
+                    [$ftQuery, $ftQuery],
+                )->fetchAllAssociative();
+            } catch (\Exception) {
+                // FULLTEXT index not available — fall through to LIKE
+            }
+        }
+
+        return $conn->executeQuery(
+            'SELECT a.id, a.title, a.summary, a.image_url, a.published_at,
+                    s.name AS source_name, c.name AS category_name
+             FROM articles a
+             LEFT JOIN news_sources s ON a.source_id = s.id
+             LEFT JOIN categories c ON a.category_id = c.id
+             WHERE a.title LIKE ? OR a.summary LIKE ? OR a.content LIKE ?
+             ORDER BY a.published_at DESC
+             LIMIT ' . $safeLimit,
+            [$likeParam, $likeParam, $likeParam],
+        )->fetchAllAssociative();
+    }
+
     public function existsByUrl(string $url): bool
     {
         return (bool) $this->createQueryBuilder('a')
